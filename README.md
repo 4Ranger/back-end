@@ -1,7 +1,7 @@
 # WASTIFY API
 
 ### endpoint : 
-- REGISTER \t: http://localhost:5000/api/auth/register
+- REGISTER /t: http://localhost:5000/api/auth/register
 - LOGIN \t: http://localhost:5000/api/auth/login
 - LOGOUT \t: http://localhost:5000/api/auth/logout
 - PROFILE GET \t: http://localhost:5000/api/auth/profile
