@@ -1,5 +1,7 @@
 const express = require("express");
 const {
+  googleAuth,
+  googleCallback,
   register,
   login,
   logout,
@@ -11,6 +13,8 @@ const verifyToken = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
