@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start-dev": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/storage": "^7.11.2",
+    "@tensorflow/tfjs-node": "^4.20.0",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
@@ -21,6 +23,7 @@
     "googleapis": "^137.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.2"
+    "nodemon": "^3.1.2",
+    "sharp": "^0.33.4"
   }
 }
