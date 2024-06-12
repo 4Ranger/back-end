@@ -1,0 +1,29 @@
+WASTIFY ENDPOINT
+
+REGISTER = http://34.101.79.164:5000/auth/register [POST]
+LOGIN = http://34.101.79.164:5000/auth/login [POST]
+LOGOUT = http://34.101.79.164:5000/auth/logout [POST]
+GET PROFILE = http://34.101.79.164:5000/auth/profile [GET]
+EDIT PROFILE = http://34.101.79.164:5000/api/auth/editProfile [PUT]
+
+register format example
+{
+    "username":"*****",
+    "email":"abc@gmail.com",
+    "password":"***** 8 character"
+}
+
+login format example
+{
+    "email":"***@gmail.com",
+    "password":"*****"
+}
+
+edit profile format example (you can input profile image)
+{
+    "username":"******",
+    "email":"***@gmail.com",
+    "file":file.img (berupa file)
+}
+
+note : untuk sementara login menggunakan google belum bisa digunakan. IDK for fixed it in compute engine.
