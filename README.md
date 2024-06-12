@@ -3,15 +3,15 @@
 ## Authentification
 ### endpoint : 
 - REGISTER :
-  ```http://localhost:5000/api/auth/register```
+  ```http://localhost:5000/auth/register```
 - LOGIN :
-  ```http://localhost:5000/api/auth/login```
+  ```http://localhost:5000/auth/login```
 - LOGOUT :
-  ```http://localhost:5000/api/auth/logout```
+  ```http://localhost:5000/auth/logout```
 - PROFILE GET :
-  ```http://localhost:5000/api/auth/profile```
+  ```http://localhost:5000/auth/profile```
 - EDIT PROFILE :
-  ```http://localhost:5000/api/auth/editProfile```
+  ```http://localhost:5000/auth/editProfile```
 
 ### ENV EXAMPLE:
 * JWT_SECRET=____
