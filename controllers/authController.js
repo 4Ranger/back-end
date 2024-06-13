@@ -121,9 +121,10 @@ const register = async (req, res) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    const token = generateToken(user);
-    res.cookie("token", token, { httpOnly: true });
-    res.status(201).json({ message: "User registered successfully", token });
+    // const token = generateToken(user);
+    // res.cookie("token", token, { httpOnly: true });
+    // res.status(201).json({ message: "User registered successfully", token });
+    res.status(201).json({ message: "User registered successfully"});
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -165,10 +166,63 @@ const login = async (req, res) => {
     );
 
     res.cookie("token", token, { httpOnly: true });
-    res.json({ message: "Login successful", token: token });
+    // res.json({ message: "Login successful", token: token });
+    res.json({
+      error: false,
+      message: "success",
+      loginResult: {
+        uid: localId,
+        username: userData.username,
+        token: token
+      }
+    });
   } catch (error) {
     console.error("Login error:", error.message); // Debugging: log error
     res.status(400).json({ error: "Invalid credentials" });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ error: "JWT token is missing" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const uid = decodedToken.uid;
+
+    // Dapatkan email pengguna dari Firestore
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.data();
+
+    if (!userData) {
+      return res.status(400).json({ error: "User data not found" });
+    }
+
+    // Verifikasi kata sandi lama menggunakan Firebase Authentication REST API
+    const apiKey = process.env.FIREBASE_API_KEY;
+    await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+      {
+        email: userData.email,
+        password: oldPassword,
+        returnSecureToken: true,
+      }
+    );
+
+    // Jika verifikasi kata sandi lama berhasil, perbarui kata sandi dengan yang baru
+    await admin.auth().updateUser(uid, {
+      password: newPassword,
+    });
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -310,13 +364,75 @@ const logout = (req, res) => {
   res.json({ message: "Logout successful" });
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    // Mengambil seluruh koleksi "users" dari Firestore
+    const usersSnapshot = await db.collection("users").get();
+
+    if (usersSnapshot.empty) {
+      return res.status(404).json({ error: "No users found" });
+    }
+
+    // Mengumpulkan data pengguna
+    const users = [];
+    usersSnapshot.forEach((doc) => {
+      users.push({ uid: doc.id, ...doc.data() });
+    });
+
+    // Mengembalikan daftar pengguna
+    res.status(200).json({
+      error: false,
+      message: "Users retrieved successfully",
+      users: users,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getLeaderboard = async (req, res) => {
+  try {
+    // Mengambil seluruh koleksi "users" dari Firestore
+    const usersSnapshot = await db.collection("users").get();
+
+    if (usersSnapshot.empty) {
+      return res.status(404).json({ error: "No users found" });
+    }
+
+    // Mengumpulkan data pengguna dan menghitung panjang array history
+    const users = [];
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+      const historyCount = userData.history ? userData.history.length : 0;
+      users.push({ uid: doc.id, ...userData, historyCount });
+    });
+
+    // Mengurutkan pengguna berdasarkan jumlah item dalam array history secara menurun
+    users.sort((a, b) => b.historyCount - a.historyCount);
+
+    // Mengembalikan daftar pengguna sebagai leaderboard
+    res.status(200).json({
+      error: false,
+      message: "Leaderboard retrieved successfully",
+      leaderboard: users,
+    });
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   googleAuth,
   googleCallback,
   register,
   login,
+  changePassword,
   logout,
   editProfile,
   upload,
   getProfile,
+  getAllUsers,
+  getLeaderboard,
 };
