@@ -64,12 +64,13 @@ router.get("/auth/google/callback", async (req, res) => {
     }
 
     // Generate JWT
+    const TEN_YEARS_IN_SECONDS = 20 * 365 * 24 * 60 * 60;
     const token = jwt.sign(
       { uid: userRecord.uid, email: userRecord.email },
       process.env.JWT_SECRET,
       {
         algorithm: "HS256",
-        expiresIn: "1h",
+        expiresIn: TEN_YEARS_IN_SECONDS,
       }
     );
 

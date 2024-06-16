@@ -3,7 +3,7 @@ const serviceAccount = require("../serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "wastify-be-file", //STORAGE BUCKET
+  storageBucket: "wastify-be", //STORAGE BUCKET
 });
 
 const db = admin.firestore();

@@ -72,12 +72,13 @@ const googleCallback = async (req, res) => {
     }
 
     // Generate JWT
+    const TEN_YEARS_IN_SECONDS = 20 * 365 * 24 * 60 * 60;
     const token = jwt.sign(
       { uid: userRecord.uid, email: userRecord.email },
       process.env.JWT_SECRET,
       {
         algorithm: "HS256",
-        expiresIn: "1h",
+        expiresIn: TEN_YEARS_IN_SECONDS,
       }
     );
 
@@ -156,12 +157,13 @@ const login = async (req, res) => {
     }
 
     // Membuat token JWT menggunakan HS256
+    const TEN_YEARS_IN_SECONDS = 20 * 365 * 24 * 60 * 60;
     const token = jwt.sign(
       { uid: localId, email: email },
       process.env.JWT_SECRET,
       {
         algorithm: "HS256",
-        expiresIn: "1h",
+        expiresIn: TEN_YEARS_IN_SECONDS,
       }
     );
 
@@ -186,11 +188,21 @@ const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
 
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
 
-    if (!token) {
-      return res.status(401).json({ error: "JWT token is missing" });
+    // if (!token) {
+    //   return res.status(401).json({ error: "JWT token is missing" });
+    // }
+
+    const authHeader = req.headers.authorization;
+
+    // Periksa apakah header Authorization tersedia dan valid
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: "JWT token is missing or invalid" });
     }
+
+    // Ambil token dari header
+    const token = authHeader.split(' ')[1];
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     const uid = decodedToken.uid;
@@ -239,11 +251,14 @@ const getProfile = async (req, res) => {
     }
 
     res.json({
-      uid: userRecord.uid,
-      email: userRecord.email,
-      displayName: userRecord.displayName,
-      photoURL: userRecord.photoURL,
-      ...userData,
+      login : {
+        error: false,
+        uid: userRecord.uid,
+        email: userRecord.email,
+        displayName: userRecord.displayName,
+        photoURL: userRecord.photoURL,
+        ...userData,
+      }
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -252,12 +267,32 @@ const getProfile = async (req, res) => {
 
 const editProfile = async (req, res) => {
   try {
-    // Dapatkan token JWT dari cookie
-    const token = req.cookies.token;
+    // Logging header Authorization untuk debugging
+    // console.log('Authorization Header:', req.headers.authorization);
 
-    // Periksa apakah token JWT tersedia
+    // // Dapatkan token JWT dari header Authorization
+    // const authHeader = req.headers.authorization;
+
+    // // Periksa apakah header Authorization tersedia dan valid
+    // if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    //   return res.status(401).json({ error: "JWT token is missing or invalid" });
+    // }
+
+    // // Ambil token dari header
+    // const token = authHeader.split(' ')[1];
+
+    // Dapatkan token JWT dari header Authorization atau cookies
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // Periksa apakah token tersedia
     if (!token) {
-      return res.status(401).json({ error: "JWT token is missing" });
+      return res.status(401).json({ error: "JWT token is missing or invalid" });
     }
 
     // Dekode token JWT untuk mendapatkan informasi pengguna
@@ -278,9 +313,7 @@ const editProfile = async (req, res) => {
 
     if (req.file) {
       const file = req.file;
-      const fileName = `${uid}_${Date.now()}_${encodeURIComponent(
-        file.originalname
-      )}`;
+      const fileName = `${uid}_${Date.now()}_${encodeURIComponent(file.originalname)}`;
       const fileUpload = bucket.file(fileName);
 
       console.log("Starting file upload for", fileName);
@@ -306,9 +339,7 @@ const editProfile = async (req, res) => {
         publicUrl = publicUrl.trim();
         if (!isValidURL(publicUrl)) {
           console.error("Invalid URL generated:", publicUrl);
-          return res
-            .status(400)
-            .json({ error: "Generated photo URL is invalid" });
+          return res.status(400).json({ error: "Generated photo URL is invalid" });
         }
 
         updates.photoURL = publicUrl;
@@ -325,9 +356,7 @@ const editProfile = async (req, res) => {
 
         await admin.auth().updateUser(uid, updates);
 
-        res
-          .status(200)
-          .json({ message: "Profile updated successfully", url: publicUrl });
+        res.status(200).json({ message: "Profile updated successfully", url: publicUrl });
       });
 
       blobStream.end(file.buffer);
@@ -405,7 +434,8 @@ const getLeaderboard = async (req, res) => {
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
       const historyCount = userData.history ? userData.history.length : 0;
-      users.push({ uid: doc.id, ...userData, historyCount });
+      const historyPoints = historyCount * 10;
+      users.push({ uid: doc.id, ...userData, historyCount, historyPoints });
     });
 
     // Mengurutkan pengguna berdasarkan jumlah item dalam array history secara menurun
