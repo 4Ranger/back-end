@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post('/predict', authMiddleware, upload.single('image'), predictImage);
+router.post('/image', authMiddleware, upload.single('image'), predictImage);
 router.get('/history', authMiddleware, getPredictionHistory);
 
 module.exports = router;

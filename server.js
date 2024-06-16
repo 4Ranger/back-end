@@ -1,5 +1,6 @@
 const dotenv = require("dotenv");
 const express = require("express");
+const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/authRoutes");
 const predictRouter = require("./routes/predictRoutes");
@@ -10,9 +11,11 @@ dotenv.config();
 
 const app = express();
 
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
 
 app.use(
   cors({
@@ -37,7 +40,7 @@ const HOST = process.env.HOST || "0.0.0.0";
 
   
   app.use("/auth", authRoutes);
-  app.use("/", predictRouter);
+  app.use("/predict", predictRouter);
 
   // Jalankan server setelah model berhasil dimuat
   app.listen(PORT, () => {
