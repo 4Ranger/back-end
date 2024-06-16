@@ -156,6 +156,9 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "User data not found" });
     }
 
+    const historyCount = userData.history ? userData.history.length : 0;
+    const historyPoints = historyCount * 10;
+
     // Membuat token JWT menggunakan HS256
     const TEN_YEARS_IN_SECONDS = 20 * 365 * 24 * 60 * 60;
     const token = jwt.sign(
@@ -175,6 +178,9 @@ const login = async (req, res) => {
       loginResult: {
         uid: localId,
         username: userData.username,
+        ...userData,
+        historyCount,
+        historyPoints,
         token: token
       }
     });
