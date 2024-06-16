@@ -1,22 +1,94 @@
-# WASTIFY API
+# Wastify API Documentation
 
-## Authentification
-### endpoint : 
-- REGISTER :
-  ```http://localhost:5000/auth/register```
-- LOGIN :
-  ```http://localhost:5000/auth/login```
-- LOGOUT :
-  ```http://localhost:5000/auth/logout```
-- PROFILE GET :
-  ```http://localhost:5000/auth/profile```
-- EDIT PROFILE :
-  ```http://localhost:5000/auth/editProfile```
+## Endpoints
 
-### ENV EXAMPLE:
-* JWT_SECRET=____
-* FIREBASE_API_KEY=___
-* GOOGLE_CLIENT_ID=___
-* GOOGLE_CLIENT_SECRET=___
+### 1. Google Login
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/google`
+- **Method:** GET
 
-Click [here](https://drive.google.com/drive/folders/1DYz5ZQiqg8qvARv-GtppPlVT7MbnSb9Q?usp=sharing) for Postman Collection.
+### 2. Register
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/register`
+- **Method:** POST
+- **Content-Type:** x-www-form-urlencoded / raw
+
+#### Request Body Example
+```json
+{
+    "username": "*****",
+    "email": "abc@gmail.com",
+    "password": "*****" // Must be at least 8 characters
+}
+```
+
+### 3. Login
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/login`
+- **Method:** POST
+- **Content-Type:** x-www-form-urlencoded / raw
+
+#### Request Body Example
+```json
+{
+    "email": "***@gmail.com",
+    "password": "*****"
+}
+```
+
+### 4. Logout
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/logout`
+- **Method:** POST
+- **Note:** Requires login to access
+
+### 5. Get Profile
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/profile`
+- **Method:** GET
+- **Note:** Requires login to access
+
+### 6. Edit Profile
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/editProfile`
+- **Method:** PUT
+- **Note:** Requires login to access
+- **Content-Type:** form-data
+
+#### Request Body Example
+```json
+{
+    "username": "******",
+    "email": "***@gmail.com",
+    "file": file.img // File upload (e.g., profile image)
+}
+```
+
+### 7. Change Password
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/changePassword`
+- **Method:** POST
+- **Note:** Requires login to access
+- **Content-Type:** x-www-form-urlencoded / raw
+
+#### Request Body Example
+```json
+{
+    "email": "***@gmail.com",
+    "oldPassword": "xxxxxxxx",
+    "newPassword": "xxxxxx"
+}
+```
+
+### 8. Leaderboard
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/auth/leaderboard`
+- **Method:** GET
+
+### 9. Prediction
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/predict/image`
+- **Method:** POST
+- **Note:** Requires login to access
+- **Content-Type:** form-data
+
+#### Request Body Example
+```
+image(file): xxx.png/jpg // Image file for prediction
+```
+
+### 10. Prediction Histories
+- **URL:** `https://wastify-capstone-project.et.r.appspot.com/predict/history`
+- **Method:** GET
+- **Note:** Requires login to access
