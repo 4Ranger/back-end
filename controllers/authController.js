@@ -83,7 +83,8 @@ const googleCallback = async (req, res) => {
     );
 
     res.cookie("token", token, { httpOnly: true });
-    res.redirect("/auth/profile"); // Redirect to profile or any desired route after login
+    res.status(200).json({ token });
+    // res.redirect("/auth/profile"); // Redirect to profile or any desired route after login
   } catch (error) {
     console.error("Error during Google login:", error.message);
     res.status(500).json({ error: "Internal Server Error" });
@@ -92,6 +93,7 @@ const googleCallback = async (req, res) => {
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
+  const defaultProfilePhotoUrl = "https://storage.googleapis.com/wastify-be/Logo%201%20transparent%201.png";
 
   try {
     // Check if the user already exists
@@ -113,12 +115,14 @@ const register = async (req, res) => {
       email: email,
       password: password, // Set original password here, Firebase handles hashing
       displayName: username,
+      photoURL: defaultProfilePhotoUrl, // Set the default profile photo URL
     });
 
     // Save additional user data to Firestore
     await db.collection("users").doc(user.uid).set({
       username: username,
       email: email,
+      profilePhotoUrl: defaultProfilePhotoUrl,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -256,6 +260,9 @@ const getProfile = async (req, res) => {
       return res.status(404).json({ error: "User data not found" });
     }
 
+    const historyCount = userData.history ? userData.history.length : 0;
+    const historyPoints = historyCount * 10;
+
     res.json({
       login : {
         error: false,
@@ -264,6 +271,8 @@ const getProfile = async (req, res) => {
         displayName: userRecord.displayName,
         photoURL: userRecord.photoURL,
         ...userData,
+        historyCount,
+        historyPoints
       }
     });
   } catch (error) {
@@ -271,21 +280,123 @@ const getProfile = async (req, res) => {
   }
 };
 
+// const editProfile = async (req, res) => {
+//   try {
+//     // Logging header Authorization untuk debugging
+//     // console.log('Authorization Header:', req.headers.authorization);
+
+//     // // Dapatkan token JWT dari header Authorization
+//     // const authHeader = req.headers.authorization;
+
+//     // // Periksa apakah header Authorization tersedia dan valid
+//     // if (!authHeader || !authHeader.startsWith('Bearer ')) {
+//     //   return res.status(401).json({ error: "JWT token is missing or invalid" });
+//     // }
+
+//     // // Ambil token dari header
+//     // const token = authHeader.split(' ')[1];
+
+//     // Dapatkan token JWT dari header Authorization atau cookies
+//     let token;
+
+//     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+//       token = req.headers.authorization.split(' ')[1];
+//     } else if (req.cookies && req.cookies.token) {
+//       token = req.cookies.token;
+//     }
+
+//     // Periksa apakah token tersedia
+//     if (!token) {
+//       return res.status(401).json({ error: "JWT token is missing or invalid" });
+//     }
+
+//     // Dekode token JWT untuk mendapatkan informasi pengguna
+//     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+//     // Identifikasi pengguna berdasarkan informasi yang diperoleh dari token
+//     const uid = decodedToken.uid;
+//     const { username, email } = req.body;
+
+//     if (!uid) {
+//       return res.status(400).json({ error: "UID is required" });
+//     }
+
+//     const updates = {
+//       displayName: username,
+//       email: email,
+//     };
+
+//     if (req.file) {
+//       const file = req.file;
+//       const fileName = `${uid}_${Date.now()}_${encodeURIComponent(file.originalname)}`;
+//       const fileUpload = bucket.file(fileName);
+
+//       console.log("Starting file upload for", fileName);
+
+//       const blobStream = fileUpload.createWriteStream({
+//         metadata: {
+//           contentType: file.mimetype,
+//         },
+//       });
+
+//       blobStream.on("error", (error) => {
+//         console.error("Blob stream error:", error.message);
+//         res.status(500).json({ error: error.message });
+//       });
+
+//       blobStream.on("finish", async () => {
+//         let publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+
+//         // Log the generated URL for debugging purposes
+//         console.log("Generated URL:", publicUrl);
+
+//         // Validate and clean the URL
+//         publicUrl = publicUrl.trim();
+//         if (!isValidURL(publicUrl)) {
+//           console.error("Invalid URL generated:", publicUrl);
+//           return res.status(400).json({ error: "Generated photo URL is invalid" });
+//         }
+
+//         updates.photoURL = publicUrl;
+
+//         console.log("Updating Firestore with new photoURL");
+
+//         await db.collection("users").doc(uid).update({
+//           username: username,
+//           email: email,
+//           profilePhotoUrl: publicUrl,
+//         });
+
+//         console.log("Updating Firebase Auth with new photoURL");
+
+//         await admin.auth().updateUser(uid, updates);
+
+//         res.status(200).json({ message: "Profile updated successfully", url: publicUrl });
+//       });
+
+//       blobStream.end(file.buffer);
+//     } else {
+//       console.log("No file uploaded, updating profile without photoURL");
+
+//       await db.collection("users").doc(uid).update({
+//         username: username,
+//         email: email,
+//       });
+
+//       await admin.auth().updateUser(uid, updates);
+
+//       res.status(200).json({ message: "Profile updated successfully" });
+//     }
+//   } catch (error) {
+//     console.error("Error updating profile:", error.message);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 const editProfile = async (req, res) => {
   try {
     // Logging header Authorization untuk debugging
     // console.log('Authorization Header:', req.headers.authorization);
-
-    // // Dapatkan token JWT dari header Authorization
-    // const authHeader = req.headers.authorization;
-
-    // // Periksa apakah header Authorization tersedia dan valid
-    // if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    //   return res.status(401).json({ error: "JWT token is missing or invalid" });
-    // }
-
-    // // Ambil token dari header
-    // const token = authHeader.split(' ')[1];
 
     // Dapatkan token JWT dari header Authorization atau cookies
     let token;
@@ -312,10 +423,14 @@ const editProfile = async (req, res) => {
       return res.status(400).json({ error: "UID is required" });
     }
 
-    const updates = {
-      displayName: username,
-      email: email,
-    };
+    // Mengumpulkan pembaruan yang valid
+    const updates = {};
+    if (username !== undefined) {
+      updates.displayName = username;
+    }
+    if (email !== undefined) {
+      updates.email = email;
+    }
 
     if (req.file) {
       const file = req.file;
@@ -352,11 +467,19 @@ const editProfile = async (req, res) => {
 
         console.log("Updating Firestore with new photoURL");
 
-        await db.collection("users").doc(uid).update({
-          username: username,
-          email: email,
-          profilePhotoUrl: publicUrl,
-        });
+        // Mengumpulkan pembaruan untuk Firestore
+        const firestoreUpdates = {};
+        if (username !== undefined) {
+          firestoreUpdates.username = username;
+        }
+        if (email !== undefined) {
+          firestoreUpdates.email = email;
+        }
+        if (publicUrl !== undefined) {
+          firestoreUpdates.profilePhotoUrl = publicUrl;
+        }
+
+        await db.collection("users").doc(uid).update(firestoreUpdates);
 
         console.log("Updating Firebase Auth with new photoURL");
 
@@ -369,10 +492,16 @@ const editProfile = async (req, res) => {
     } else {
       console.log("No file uploaded, updating profile without photoURL");
 
-      await db.collection("users").doc(uid).update({
-        username: username,
-        email: email,
-      });
+      // Mengumpulkan pembaruan untuk Firestore
+      const firestoreUpdates = {};
+      if (username !== undefined) {
+        firestoreUpdates.username = username;
+      }
+      if (email !== undefined) {
+        firestoreUpdates.email = email;
+      }
+
+      await db.collection("users").doc(uid).update(firestoreUpdates);
 
       await admin.auth().updateUser(uid, updates);
 
@@ -383,6 +512,137 @@ const editProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+const editUserDetails = async (req, res) => {
+  try {
+    // Dapatkan token JWT dari header Authorization atau cookies
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // Periksa apakah token tersedia
+    if (!token) {
+      return res.status(401).json({ error: "JWT token is missing or invalid" });
+    }
+
+    // Dekode token JWT untuk mendapatkan informasi pengguna
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Identifikasi pengguna berdasarkan informasi yang diperoleh dari token
+    const uid = decodedToken.uid;
+    const { username, email } = req.body;
+
+    if (!uid) {
+      return res.status(400).json({ error: "UID is required" });
+    }
+
+    const updates = {
+      displayName: username,
+      email: email,
+    };
+
+    // Perbarui data pengguna di Firestore
+    await db.collection("users").doc(uid).update({
+      username: username,
+      email: email,
+    });
+
+    // Perbarui data pengguna di Firebase Authentication
+    await admin.auth().updateUser(uid, updates);
+
+    res.status(200).json({ message: "User details updated successfully" });
+  } catch (error) {
+    console.error("Error updating user details:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const editUserProfilePhoto = async (req, res) => {
+  try {
+    // Dapatkan token JWT dari header Authorization atau cookies
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    // Periksa apakah token tersedia
+    if (!token) {
+      return res.status(401).json({ error: "JWT token is missing or invalid" });
+    }
+
+    // Dekode token JWT untuk mendapatkan informasi pengguna
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Identifikasi pengguna berdasarkan informasi yang diperoleh dari token
+    const uid = decodedToken.uid;
+
+    if (!uid) {
+      return res.status(400).json({ error: "UID is required" });
+    }
+
+    if (req.file) {
+      const file = req.file;
+      const fileName = `${uid}_${Date.now()}_${encodeURIComponent(file.originalname)}`;
+      const fileUpload = bucket.file(fileName);
+
+      console.log("Starting file upload for", fileName);
+
+      const blobStream = fileUpload.createWriteStream({
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      blobStream.on("error", (error) => {
+        console.error("Blob stream error:", error.message);
+        res.status(500).json({ error: error.message });
+      });
+
+      blobStream.on("finish", async () => {
+        let publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+
+        // Log the generated URL for debugging purposes
+        console.log("Generated URL:", publicUrl);
+
+        // Validate and clean the URL
+        publicUrl = publicUrl.trim();
+        if (!isValidURL(publicUrl)) {
+          console.error("Invalid URL generated:", publicUrl);
+          return res.status(400).json({ error: "Generated photo URL is invalid" });
+        }
+
+        console.log("Updating Firestore with new photoURL");
+
+        await db.collection("users").doc(uid).update({
+          profilePhotoUrl: publicUrl,
+        });
+
+        console.log("Updating Firebase Auth with new photoURL");
+
+        await admin.auth().updateUser(uid, { photoURL: publicUrl });
+
+        res.status(200).json({ message: "Profile photo updated successfully", url: publicUrl });
+      });
+
+      blobStream.end(file.buffer);
+    } else {
+      res.status(400).json({ error: "No file uploaded" });
+    }
+  } catch (error) {
+    console.error("Error updating profile photo:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 
 // Function to validate URL
 function isValidURL(url) {
@@ -447,6 +707,11 @@ const getLeaderboard = async (req, res) => {
     // Mengurutkan pengguna berdasarkan jumlah item dalam array history secara menurun
     users.sort((a, b) => b.historyCount - a.historyCount);
 
+     // Menambahkan rank berdasarkan urutan
+    users.forEach((user, index) => {
+      user.rank = index + 1;
+    });
+
     // Mengembalikan daftar pengguna sebagai leaderboard
     res.status(200).json({
       error: false,
@@ -467,6 +732,8 @@ module.exports = {
   changePassword,
   logout,
   editProfile,
+  editUserDetails,
+  editUserProfilePhoto,
   upload,
   getProfile,
   getAllUsers,

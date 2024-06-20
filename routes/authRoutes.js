@@ -8,6 +8,8 @@ const {
   logout,
   getProfile,
   editProfile,
+  editUserDetails,
+  editUserProfilePhoto,
   upload,
   getAllUsers,
   getLeaderboard,
@@ -20,7 +22,9 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/changePassword", verifyToken, changePassword);
 router.post("/logout", logout);
-router.put("/editProfile", verifyToken, upload.single("file"), editProfile);
+router.patch("/editProfile", verifyToken, upload.single("file"), editProfile);
+router.put("/editUserDetails", verifyToken, editUserDetails);
+router.put("/editUserProfilePhoto", verifyToken, upload.single("file"), editUserProfilePhoto);
 router.get("/google", googleAuth);
 router.get("/google/callback", googleCallback);
 router.get("/profile", verifyToken, getProfile);

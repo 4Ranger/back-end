@@ -6,6 +6,7 @@ const authRoutes = require("./routes/authRoutes");
 const predictRouter = require("./routes/predictRoutes");
 const loadModel = require("./models/modelLoader");
 const cors = require("cors");
+const path = require("path");
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(
   })
 );
 
-
+app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || "0.0.0.0";
@@ -38,9 +39,11 @@ const HOST = process.env.HOST || "0.0.0.0";
   const model = await loadModel();
   app.locals.model = model; // Simpan model di app.locals
 
-  
   app.use("/auth", authRoutes);
   app.use("/predict", predictRouter);
+  app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+  })
 
   // Jalankan server setelah model berhasil dimuat
   app.listen(PORT, () => {

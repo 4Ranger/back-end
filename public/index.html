@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wastify API Documentation</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .navbar {
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      color: #416D19;
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .menus {
+      display: flex;
+      align-items: center;
+    }
+
+    .menus ul{
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo{
+      max-width: 80px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 50px;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      color: #333;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      margin: 10px 0;
+    }
+    code {
+      background: #eaeaea;
+      padding: 2px 4px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ddd;
+      overflow: auto;
+    }
+  </style>
+</head>
+<header>
+  <nav>
+    <div class="navbar">
+      <img class="logo" src="./img/logo.png" alt="">
+      <p>Wastify</p>
+    </div>
+    <div class="menus">
+      <ul>
+        <li>Home</li>
+        <li>Authentication</li>
+        <li>Predictions</li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<body>
+  <div class="container">
+    <h1>Wastify API Documentation</h1>
+    <h2>Endpoints</h2>
+    <p><code>https://wastify-capstone-project.et.r.appspot.com</code></p>
+
+    <h3>1. Google Login</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/google</code></li>
+      <li><strong>Method:</strong> GET</li>
+    </ul>
+
+    <h3>2. Register</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/register</code></li>
+      <li><strong>Method:</strong> POST</li>
+      <li><strong>Content-Type:</strong> x-www-form-urlencoded / raw</li>
+    </ul>
+    <h4>Request Body Example</h4>
+    <pre><code>{
+  "username": "*****",
+  "email": "abc@gmail.com",
+  "password": "*****" // Must be at least 8 characters
+}</code></pre>
+
+    <h3>3. Login</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/login</code></li>
+      <li><strong>Method:</strong> POST</li>
+      <li><strong>Content-Type:</strong> x-www-form-urlencoded / raw</li>
+    </ul>
+    <h4>Request Body Example</h4>
+    <pre><code>{
+  "email": "***@gmail.com",
+  "password": "*****"
+}</code></pre>
+
+    <h3>4. Logout</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/logout</code></li>
+      <li><strong>Method:</strong> POST</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+    </ul>
+
+    <h3>5. Get Profile</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/profile</code></li>
+      <li><strong>Method:</strong> GET</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+    </ul>
+
+    <h3>6. Edit Profile</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/editProfile</code></li>
+      <li><strong>Method:</strong> PUT</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+      <li><strong>Content-Type:</strong> form-data</li>
+    </ul>
+    <h4>Request Body Example</h4>
+    <pre><code>{
+  "username": "******",
+  "email": "***@gmail.com",
+  "file": file.img // File upload (e.g., profile image)
+}</code></pre>
+
+    <h3>7. Change Password</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/changePassword</code></li>
+      <li><strong>Method:</strong> POST</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+      <li><strong>Content-Type:</strong> x-www-form-urlencoded / raw</li>
+    </ul>
+    <h4>Request Body Example</h4>
+    <pre><code>{
+  "email": "***@gmail.com",
+  "oldPassword": "xxxxxxxx",
+  "newPassword": "xxxxxx"
+}</code></pre>
+
+    <h3>8. Leaderboard</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/auth/leaderboard</code></li>
+      <li><strong>Method:</strong> GET</li>
+    </ul>
+
+    <h3>9. Prediction</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/predict/image</code></li>
+      <li><strong>Method:</strong> POST</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+      <li><strong>Content-Type:</strong> form-data</li>
+    </ul>
+    <h4>Request Body Example</h4>
+    <pre><code>image(file): xxx.png/jpg // Image file for prediction</code></pre>
+
+    <h3>10. Prediction Histories</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>https://wastify-capstone-project.et.r.appspot.com/predict/history</code></li>
+      <li><strong>Method:</strong> GET</li>
+      <li><strong>Note:</strong> Requires login to access</li>
+    </ul>
+  </div>
+</body>
+</html>
